@@ -3,7 +3,7 @@
 
 MG_DOCKER_IMAGE_NAME_PREFIX ?= ghcr.io/absmach/magistrala
 BUILD_DIR = build
-SERVICES =  bootstrap provision re postgres-writer postgres-reader timescale-writer	timescale-reader cli
+SERVICES =  bootstrap provision re postgres-writer postgres-reader timescale-writer	timescale-reader cli alarms
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
 CGO_ENABLED ?= 0
@@ -27,18 +27,18 @@ INTERNAL_PROTO_FILES := $(shell find $(INTERNAL_PROTO_DIR) -name "*.proto" | sed
 ifneq ($(MG_MESSAGE_BROKER_TYPE),)
     MG_MESSAGE_BROKER_TYPE := $(MG_MESSAGE_BROKER_TYPE)
 else
-    MG_MESSAGE_BROKER_TYPE=nats
+    MG_MESSAGE_BROKER_TYPE=msg_nats
 endif
 
 ifneq ($(MG_ES_TYPE),)
     MG_ES_TYPE := $(MG_ES_TYPE)
 else
-    MG_ES_TYPE=nats
+    MG_ES_TYPE=es_nats
 endif
 
 define compile_service
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) \
-	go build -tags $(MG_MESSAGE_BROKER_TYPE) --tags $(MG_ES_TYPE) -ldflags "-s -w \
+	go build -tags $(MG_MESSAGE_BROKER_TYPE) -tags $(MG_ES_TYPE) -ldflags "-s -w \
 	-X 'github.com/absmach/magistrala.BuildTime=$(TIME)' \
 	-X 'github.com/absmach/magistrala.Version=$(VERSION)' \
 	-X 'github.com/absmach/magistrala.Commit=$(COMMIT)'" \
